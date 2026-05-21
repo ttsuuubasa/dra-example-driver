@@ -33,7 +33,7 @@ The scheduler uses these to track the binding lifecycle of allocated devices.
     - BindingFailureConditions
     ```
 
-3. **Create the demo pod**: Apply the example manifest and confirm that the pod stays `Pending` because the binding conditions have not yet been satisfied:
+3. **Create the demo pod**: Apply the example manifest. The `BindingConditions` controller plugin automatically watches allocated `ResourceClaim` objects and satisfies binding conditions, so the pod transitions from `Pending` to `Running` shortly after creation:
     ```bash
     kubectl apply -f demo/binding-conditions/binding-conditions.yaml
     ```
@@ -41,18 +41,21 @@ The scheduler uses these to track the binding lifecycle of allocated devices.
     ```console
     $ kubectl get pod -n binding-conditions
     NAME   READY   STATUS    RESTARTS   AGE
-    pod0   0/1     Pending   0          14s
+    pod0   1/1     Running   0          30s
     ```
-    Also verify that the `ResourceClaim` has been allocated and that `bindingConditions` and `bindingFailureConditions` appear in its status:
+
+    Verify that the `ResourceClaim` has been allocated and that `status.devices` contains the `BindingConditions` condition set to `True`:
     ```console
     $ kubectl get resourceclaim -n binding-conditions
     NAME             STATE                AGE
-    pod0-gpu-5bnfq   allocated,reserved   5m14s
+    pod0-gpu-5bnfq   allocated,reserved   30s
     ```
 
-    ```console
-    $ kubectl get resourceclaim -n binding-conditions -o yaml
-    ...
+    ```bash
+    kubectl get resourceclaim -n binding-conditions -o yaml
+    ```
+
+    ```yaml
     status:
       allocation:
         devices:
@@ -65,26 +68,6 @@ The scheduler uses these to track the binding lifecycle of allocated devices.
             driver: gpu.example.com
             pool: dra-example-driver-cluster-worker
             request: gpu
-      reservedFor:
-      - name: pod0
-        resource: pods
-    ...
-    ```
-
-4. **Binding condition is satisfied automatically**: The `BindingConditions` controller plugin watches allocated `ResourceClaim` objects and automatically marks binding conditions as satisfied. After a short reconciliation period, the pod should transition out of `Pending`:
-    ```console
-    $ kubectl get pod -n binding-conditions
-    NAME   READY   STATUS    RESTARTS   AGE
-    pod0   1/1     Running   0          2m
-    ```
-
-    Verify that `status.devices` on the `ResourceClaim` now contains the `BindingConditions` condition set to `True`:
-    ```bash
-    kubectl get resourceclaim -n binding-conditions -o yaml
-    ```
-
-    ```yaml
-    status:
       devices:
       - conditions:
         - lastTransitionTime: "2026-05-15T14:00:00Z"
@@ -95,6 +78,9 @@ The scheduler uses these to track the binding lifecycle of allocated devices.
         device: gpu-0
         driver: gpu.example.com
         pool: dra-example-driver-cluster-worker
+      reservedFor:
+      - name: pod0
+        resource: pods
     ```
 
 #### Testing

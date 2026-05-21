@@ -14,7 +14,7 @@ rules:
 - apiGroups: ["resource.k8s.io"]
   resources: ["resourceclaims/driver"]
   resourceNames: [{{ include "dra-example-driver.driverName" . | quote }}]
-  verbs: ["associated-node:update", "arbitrary-node:update"]
+  verbs: ["associated-node:update"]
 - apiGroups: [""]
   resources: ["nodes"]
   verbs: ["get"]

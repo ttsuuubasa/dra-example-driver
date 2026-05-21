@@ -16,8 +16,10 @@
 # readiness on the node.
 #
 # Key requirements:
-#   - The driver must be installed with bindingConditions=true:
-#       helm upgrade -i ... --set kubeletPlugin.bindingConditions=true
+#   - The driver must be installed with bindingConditions=true and the
+#     BindingConditions controller plugin enabled:
+#       helm upgrade -i ... --set kubeletPlugin.bindingConditions=true \
+#                           --set controller.plugins='{BindingConditions}'
 #
 # Verify binding condition fields are published in the ResourceSlice with:
 #   kubectl get resourceslice -o yaml
